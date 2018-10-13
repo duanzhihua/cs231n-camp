@@ -57,11 +57,11 @@ def affine_backward(dout, cache):
     x, w, b = cache
     dx, dw, db = None, None, None
     ###########################################################################
-    # TODO: Implement the affine backward pass.       develop                        #
+    # TODO: Implement the affine backward pass.                               #
     ###########################################################################
     # z= wx +b ---->l   #▽Wl = ▽zl X^T   #▽bl = ▽zl * 1    #▽xl = ▽zl * w 
      
-    dx =  np.dot (dout,w.T)      # (N,M)  (M,D)-  -- > (N,D)
+    dx =  np.dot (dout,w.T)      # (N,M)  (M,D)------> (N,D)
     dx =  dx.reshape(x.shape)      # (N,D)----> (N, d1, ..., d_k)
     dw = np.dot ( x.reshape(x.shape[0],-1).T ,dout   )   # (N,D)^T   (N,M) ---(D,M)
     db = dout.sum(axis=0)  # dout(N,M) --->(M,1)

@@ -1,0 +1,1 @@
+cs231n training camp - CS231n: Convolutional Neural Networks for Visual Recognition
