@@ -57,7 +57,7 @@ def affine_backward(dout, cache):
     x, w, b = cache
     dx, dw, db = None, None, None
     ###########################################################################
-    # TODO: Implement the affine backward pass.                               #
+    # TODO: Implement the affine backward pass.       develop                        #
     ###########################################################################
     # z= wx +b ---->l   #▽Wl = ▽zl X^T   #▽bl = ▽zl * 1    #▽xl = ▽zl * w 
      
