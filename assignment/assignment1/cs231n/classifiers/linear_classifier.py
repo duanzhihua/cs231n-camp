@@ -39,6 +39,7 @@ class LinearClassifier(object):
     for it in range(num_iters):
       X_batch = None
       y_batch = None
+      
 
       #########################################################################
       # TODO:                                                                 #
@@ -51,7 +52,9 @@ class LinearClassifier(object):
       # Hint: Use np.random.choice to generate indices. Sampling with         #
       # replacement is faster than sampling without replacement.              #
       #########################################################################
-      pass
+      index = np.random.choice(num_train,size=batch_size)
+      X_batch =X[index]
+      y_batch =y[index]       
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
@@ -65,7 +68,7 @@ class LinearClassifier(object):
       # TODO:                                                                 #
       # Update the weights using the gradient and the learning rate.          #
       #########################################################################
-      pass
+      self.W -=grad*learning_rate
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
@@ -94,7 +97,8 @@ class LinearClassifier(object):
     # TODO:                                                                   #
     # Implement this method. Store the predicted labels in y_pred.            #
     ###########################################################################
-    pass
+     
+    y_pred = np.argmax(np.dot(X,self.W), axis=1)  # (N,C) axis=1 
     ###########################################################################
     #                           END OF YOUR CODE                              #
     ###########################################################################
