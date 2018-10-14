@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from builtins import range
 from builtins import object
 import numpy as np
@@ -47,7 +49,13 @@ class TwoLayerNet(object):
         # and biases using the keys 'W1' and 'b1' and second layer                 #
         # weights and biases using the keys 'W2' and 'b2'.                         #
         ############################################################################
-        pass
+         
+        self.params['W1']=weight_scale * np.random.randn(input_dim,hidden_dim)
+        self.params['b1']= np.zeros(hidden_dim)
+        self.params['W2']=weight_scale * np.random.randn(hidden_dim,num_classes)    
+        self.params['b2']=np.zeros(num_classes)   
+    
+    
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -78,6 +86,13 @@ class TwoLayerNet(object):
         # class scores for X and storing them in the scores variable.              #
         ############################################################################
         pass
+        
+       #scores = np.dot(X.reshape(X.shape[0],-1),self.params['W1']) + self.params['b1'] #(N,D) (D,H) -->(N,H)
+       # scores = np.dot(scores,self.params['W2']) + self.params['b2'] #(N,H) (H,C) -->(N,C)
+        # Note: A two-layer fully-connected neural network with ReLU nonlinearity and   softmax loss that uses a modular layer design
+        out, cache1 =affine_relu_forward(X, self.params['W1'], self.params['b1'])
+        scores, cache2 =affine_forward(out, self.params['W2'], self.params['b2'])
+                  
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -98,6 +113,20 @@ class TwoLayerNet(object):
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
         pass
+        loss, dout  = softmax_loss(scores, y)    
+        loss += 0.5* self.reg *( np.sum(self.params["W1"] *  self.params["W1"]) +  np.sum(self.params["W2"] *  self.params["W2"]))
+        dx2, dw2, db2= affine_backward(dout, cache2)
+        grads['W2']=dw2 + 0.5 *self.reg*2 *self.params["W2"]
+        grads['b2']=db2   
+         
+        dx1, dw1, db1=affine_relu_backward(dx2, cache1)        
+        grads['W1']=dw1 + 0.5 *self.reg*2 *self.params["W1"]
+        grads['b1']=db1
+                
+        
+        
+        
+    
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
