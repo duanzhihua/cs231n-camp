@@ -187,7 +187,16 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # Referencing the original paper (https://arxiv.org/abs/1502.03167)   #
         # might prove to be helpful.                                          #
         #######################################################################
-        pass
+        
+        #公式： https://arxiv.org/abs/1502.03167
+        mean_x = np.mean(x, axis = 0 )
+        var_x = np.var(x, axis = 0)
+        x_hat =( x - mean_x) / np.sqrt(var_x +  eps )
+        out = gamma* x_hat + beta        
+        running_mean = momentum * running_mean + (1 - momentum) * mean_x
+        running_var = momentum * running_var + (1 - momentum) * var_x
+        inv_var_x = 1 / np.sqrt(var_x +  eps)
+        cache =(x,x_hat,gamma,mean_x,inv_var_x)
         #######################################################################
         #                           END OF YOUR CODE                          #
         #######################################################################
@@ -198,7 +207,11 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # then scale and shift the normalized data using gamma and beta.      #
         # Store the result in the out variable.                               #
         #######################################################################
-        pass
+       
+        x_hat =( x - running_mean) / np.sqrt(running_var +  eps )
+        out = gamma* x_hat + beta     
+        
+    
         #######################################################################
         #                          END OF YOUR CODE                           #
         #######################################################################
@@ -236,7 +249,33 @@ def batchnorm_backward(dout, cache):
     # Referencing the original paper (https://arxiv.org/abs/1502.03167)       #
     # might prove to be helpful.                                              #
     ###########################################################################
-    pass
+# =============================================================================
+#     xi ----- uB----- o^2 B------------xi^--------------yi----------l 
+#          xi----- 
+#                           ub----            gamma--
+#                           xi----            betla-- 
+# =============================================================================
+    x, x_hat, gamma, mu, inv_sigma = cache
+    x,x_hat,gamma,mean_x,inv_var_x = cache
+    N = x.shape[0]
+    # dx 求导合并：
+    #1: l--->xi^--->xi
+    dx= gamma * dout * inv_var_x
+    #2: l----> o^2 B--->xi
+    dx += (2 / N) * (x - mean_x) * np.sum(- (1/2) * inv_var_x ** 3 * (x - mean_x) * gamma * dout, axis=0)
+    
+    #3: l----> uB--->xi
+    dx += (1 / N) * np.sum(-1 * inv_var_x * gamma * dout, axis=0)   
+    
+    # dgamma求导：l----> yi--->gamma 
+    dgamma = np.sum(x_hat * dout, axis=0)
+    
+    # dbeta求导：l----> yi--->betla 
+    dbeta = np.sum(dout, axis=0)
+
+
+
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################

@@ -193,7 +193,27 @@ class FullyConnectedNet(object):
         # beta2, etc. Scale parameters should be initialized to ones and shift     #
         # parameters should be initialized to zeros.                               #
         ############################################################################
-        pass
+        for i in range(len(hidden_dims)):  
+            # input layer ---> the first hidden layer
+            if i ==0 :
+                self.params['W'+str(i+1)]=weight_scale * np.random.randn(input_dim,hidden_dims[i])
+                self.params['b'+str(i+1)]= np.zeros(hidden_dims[i])
+                
+                if self.normalization is not None:
+                    self.params['gamma'+str(i+1)]= np.ones( hidden_dims[i] )
+                    self.params['beta'+str(i+1)]=  np.zeros( hidden_dims[i] )
+             # process the middle hidden layers
+            else:
+                self.params['W'+str(i+1)]=weight_scale * np.random.randn(hidden_dims[i-1],hidden_dims[i])
+                self.params['b'+str(i+1)]= np.zeros(hidden_dims[i])       
+                if self.normalization is not None:
+                    self.params['gamma'+str(i+1)]= np.ones( hidden_dims[i] )
+                    self.params['beta'+str(i+1)]=  np.zeros( hidden_dims[i] )
+             
+        # the last hidden layer --->output layer    
+        self.params['W'+str(len(hidden_dims))]=weight_scale * np.random.randn(hidden_dims[len(hidden_dims)-1],num_classes)    
+        self.params['b'+str(len(hidden_dims))]=np.zeros(num_classes)       
+             
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -253,6 +273,42 @@ class FullyConnectedNet(object):
         # layer, etc.                                                              #
         ############################################################################
         pass
+# =============================================================================
+#       {affine - [batch/layer norm] - relu - [dropout]} x (L - 1) - affine - softmax
+# 
+#    todo     out, cache1 =affine_relu_forward(X, self.params['W1'], self.params['b1'])
+#    todo     scores, cache2 =affine_forward(out, self.params['W2'], self.params['b2'])
+# 
+#         scores todo
+#         
+#        for i in range(self.num_layers -1):  
+#             # input layer ---> the first hidden layer
+#             if i ==0 : #X：(N, D) W1：(input_dim=D,hidden_dims[0])
+#                 # affine
+#                out, cache1 = affine_forward(X, self.params['W'+str(i+1)], self.params['b'+str(i+1)])
+#                 #[batch/layer norm] 
+#                 
+#                 
+#                 #relu
+#                 
+#                 #[dropout]
+#                 
+#                 
+#                 
+#                 
+#             else：
+#                # affine
+#                 scores, cache2 = affine_forward(scores, self.params['W'+str(i+1)], self.params['b'+str(i+1)])
+#                 #[batch/layer norm] 
+#                 
+#                 
+#                 #relu
+#                 
+#                 #[dropout]
+#             
+# =============================================================================
+            
+            
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
