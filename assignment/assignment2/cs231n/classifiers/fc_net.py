@@ -375,7 +375,7 @@ class FullyConnectedNet(object):
                                grads['beta'+str(i)] = dbeta  
                                
                         if self.normalization=='layernorm':            
-                               dout, dgamma, dbeta = batchnorm_backward(dout, caches[i-1][index_cache])
+                               dout, dgamma, dbeta = layernorm_backward(dout, caches[i-1][index_cache])
                                index_cache = index_cache -1
                                grads['gamma'+str(i)] = dgamma
                                grads['beta'+str(i)] = dbeta          
