@@ -149,7 +149,11 @@ class FullyConnectedNet(object):
     Similar to the TwoLayerNet above, learnable parameters are stored in the
     self.params dictionary and will be learned using the Solver class.
     """
-
+    def __str__(self):
+        msg = "The assigment of students diamond : FullyConnectedNet model"+ str(self.params.keys()  )
+        return msg
+    
+    
     def __init__(self, hidden_dims, input_dim=3*32*32, num_classes=10,
                  dropout=1, normalization=None, reg=0.0,
                  weight_scale=1e-2, dtype=np.float32, seed=None):

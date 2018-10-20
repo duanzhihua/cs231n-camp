@@ -321,3 +321,12 @@ plt.xlabel('Iteration')
 plt.ylabel('Training loss')
 plt.show() 
 
+#SGD+Momentum
+
+
+
+
+
+
+
+
