@@ -306,7 +306,7 @@ class FullyConnectedNet(object):
 
                 #[dropout]
                if self.use_dropout:
-                  out, cache_dropout = dropout_forward(x, self.dropout_param) 
+                  out, cache_dropout = dropout_forward(out, self.dropout_param) 
                   cache.append(cache_dropout) 
                   
                caches.append(cache)

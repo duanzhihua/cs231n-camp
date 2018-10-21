@@ -514,10 +514,51 @@ for i in [1, 2, 3]:
 plt.gcf().set_size_inches(15, 15)
 plt.show()
 
+best_model = None
+################################################################################
+# TODO: Train the best FullyConnectedNet that you can on CIFAR-10. You might   #
+# find batch/layer normalization and dropout useful. Store your best model in  #
+# the best_model variable.                                                     #
+################################################################################
+
+learning_rate = [1e-4, 1e-3]
+weight_scale = [5e-2, 5e-3]
+regularization = [1e-3, 1e-4]
+
+best_val_acc = -1
+best_weight_scale = 0
+best_lr = 0
+for lr in learning_rate:
+    for ws in weight_scale:
+        for reg in regularization:
+            model = FullyConnectedNet([100, 100, 100, 100], weight_scale=ws, dropout=0.8, normalization='batchnorm', reg=reg)
+
+            solver = Solver(model, data,
+                          num_epochs=10, batch_size=128,
+                          update_rule='adam',
+                          optim_config={
+                            'learning_rate': lr
+                          },
+                          verbose=False)
+            solver.train()
+            val_acc = solver.best_val_acc
+            print('weight scale %f, lr: %f, val_acc: %f' % (ws, lr, val_acc))
+            
+            if val_acc > best_val_acc:
+                best_val_acc = val_acc
+                best_weight_scale = ws
+                best_lr = lr
+                best_model = model
+            print()
+################################################################################
+#                              END OF YOUR CODE                                #
+################################################################################
 
 
-
-
+y_test_pred = np.argmax(best_model.loss(data['X_test']), axis=1)
+y_val_pred = np.argmax(best_model.loss(data['X_val']), axis=1)
+print('Validation set accuracy: ', (y_val_pred == data['y_val']).mean())
+print('Test set accuracy: ', (y_test_pred == data['y_test']).mean())
 
 
 
