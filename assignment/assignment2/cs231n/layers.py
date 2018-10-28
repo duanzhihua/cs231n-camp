@@ -2,7 +2,7 @@
 
 from builtins import range
 import numpy as np
-
+import numbers
 
 def affine_forward(x, w, b):
     """
@@ -542,7 +542,38 @@ def conv_forward_naive(x, w, b, conv_param):
     # TODO: Implement the convolutional forward pass.                         #
     # Hint: you can use the function np.pad for padding.                      #
     ###########################################################################
-    pass
+     
+    stride = conv_param['stride']
+    padding = conv_param['pad']
+    if isinstance(stride, numbers.Number):
+        stride = (stride, stride)  #
+    if isinstance(padding, numbers.Number):
+        padding = [(padding, padding), (padding, padding)]
+    else:
+        padding = [(i,) * 2 for i in padding]
+    pad = [(0, 0), (0, 0)]
+    pad.extend(padding)
+    x_pad = np.pad(x, pad_width=pad, mode='constant', constant_values=0)
+    n, c, pad_h, pad_w = x_pad.shape
+    f, w_c, hh, ww = w.shape
+    assert c == w_c, 'input channels must equal to filter channels'
+    out_h = (pad_h - hh) // stride[0] + 1
+    out_w = (pad_w - ww) // stride[1] + 1
+    out = np.zeros(shape=(n, f, out_h, out_w))
+    for i in range(n):  # 每个样本点
+        for j in range(f):  # 每个filter
+            for _w in range(out_w):  # 水平方向
+                for _h in range(out_h):  # 竖直方向
+                    vert_start =  _h*stride[1]
+                    vert_end   =  _h*stride[1] + hh 
+                    horiz_start = _w*stride[0]
+                    horiz_end   = _w*stride[0] + ww     
+                    out[i, j, _h, _w] = np.sum(
+                        x_pad[i, :, vert_start: vert_end, horiz_start:horiz_end] * w[j]) + b[j]
+                    #print (i,"\t",j,"\t",_w,"\t", _h,"\t",stride[1],"\t",stride[0] ,"\t",w[j].shape)
+
+
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
