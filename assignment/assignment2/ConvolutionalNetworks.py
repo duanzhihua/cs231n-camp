@@ -455,6 +455,61 @@ print('dgamma error: ', rel_error(da_num, dgamma))
 print('dbeta error: ', rel_error(db_num, dbeta))
 
 
+#Group normalization: forward
+np.random.seed(231)
+# Check the training-time forward pass by checking means and variances
+# of features both before and after spatial batch normalization
+
+N, C, H, W = 2, 6, 4, 5
+G = 2
+x = 4 * np.random.randn(N, C, H, W) + 10
+x_g = x.reshape((N*G,-1))
+print('Before spatial group normalization:')
+print('  Shape: ', x.shape)
+print('  Means: ', x_g.mean(axis=1))
+print('  Stds: ', x_g.std(axis=1))
+
+# Means should be close to zero and stds close to one
+gamma, beta = np.ones((1,C,1,1)), np.zeros((1,C,1,1))
+bn_param = {'mode': 'train'}
+
+out, _ = spatial_groupnorm_forward(x, gamma, beta, G, bn_param)
+out_g = out.reshape((N*G,-1))
+print('After spatial group normalization:')
+print('  Shape: ', out.shape)
+print('  Means: ', out_g.mean(axis=1))
+print('  Stds: ', out_g.std(axis=1))
+
+
+#Spatial group normalization: backward
+np.random.seed(231)
+N, C, H, W = 2, 6, 4, 5
+G = 2
+x = 5 * np.random.randn(N, C, H, W) + 12
+gamma = np.random.randn(1,C,1,1)
+beta = np.random.randn(1,C,1,1)
+dout = np.random.randn(N, C, H, W)
+
+gn_param = {}
+fx = lambda x: spatial_groupnorm_forward(x, gamma, beta, G, gn_param)[0]
+fg = lambda a: spatial_groupnorm_forward(x, gamma, beta, G, gn_param)[0]
+fb = lambda b: spatial_groupnorm_forward(x, gamma, beta, G, gn_param)[0]
+
+dx_num = eval_numerical_gradient_array(fx, x, dout)
+da_num = eval_numerical_gradient_array(fg, gamma, dout)
+db_num = eval_numerical_gradient_array(fb, beta, dout)
+
+_, cache = spatial_groupnorm_forward(x, gamma, beta, G, gn_param)
+dx, dgamma, dbeta = spatial_groupnorm_backward(dout, cache)
+#You should expect errors of magnitudes between 1e-12~1e-07
+print('dx error: ', rel_error(dx_num, dx))
+print('dgamma error: ', rel_error(da_num, dgamma))
+print('dbeta error: ', rel_error(db_num, dbeta))
+
+
+
+
+
 
 
 
