@@ -561,7 +561,7 @@ def conv_forward_naive(x, w, b, conv_param):
     out_w = (pad_w - ww) // stride[1] + 1
     out = np.zeros(shape=(n, f, out_h, out_w))
     for i in range(n):  # 每个样本点
-        for j in range(f):  # 每个filter
+        for j in range(f):  # 每个filter  汇总
             for _w in range(out_w):  # 水平方向
                 for _h in range(out_h):  # 竖直方向
                     vert_start =  _h*stride[1]
@@ -598,7 +598,54 @@ def conv_backward_naive(dout, cache):
     ###########################################################################
     # TODO: Implement the convolutional backward pass.                        #
     ###########################################################################
-    pass
+    #pass
+    x, w, b, conv_param = cache
+    stride = conv_param['stride']
+    padding = conv_param['pad']
+    if isinstance(stride, numbers.Number):
+        stride = (stride, stride)  #
+    if isinstance(padding, numbers.Number):
+        padding = [(padding, padding), (padding, padding)]
+    else:
+        padding = [(i,) * 2 for i in padding]
+    pad = [(0, 0), (0, 0)]
+    pad.extend(padding)
+    x_pad = np.pad(x, pad_width=pad, mode='constant', constant_values=0)
+    n, c, pad_h, pad_w = x_pad.shape
+    f, w_c, hh, ww = w.shape
+    assert c == w_c, 'input channels must equal to filter channels'
+    out_h = (pad_h - hh) // stride[0] + 1
+    out_w = (pad_w - ww) // stride[1] + 1
+    
+    dw = np.zeros_like(w)
+    db = np.zeros_like(b)
+    dx_pad = np.zeros_like(x_pad)    
+
+    for i in range(n):  # 每个样本点
+        for j in range(f):  # 每个filter
+            for _w in range(out_w):  # 水平方向
+                for _h in range(out_h):  # 竖直方向
+                    dw_vert_start =  _h*stride[1]
+                    dw_vert_end   =  _h*stride[1]+ ww
+                    dw_horiz_start = _w*stride[0]
+                    dw_horiz_end   = _w*stride[0]+ hh  
+                    #dw[j] 跟filter相关，一个filter对应一个卷积核w ，对应的x_pad区域 链式求导，简化理解wx=out  dl/dw = dout*dx  ww、hh进行了交换。 
+                    dw[j] += dout[i, j, _h, _w] * x_pad[i, :, dw_vert_start: dw_vert_end, dw_horiz_start:dw_horiz_end]
+                    #db[j]跟filter相关，一个filter对应一个b，因此在一个filter上将各位维度（不同样本，不同的w、h）中b的变化量进行累加。
+                    db[j] += dout[i, j, _h, _w]
+                    
+                    dx_pad_vert_start =  _h*stride[1]
+                    dx_pad_vert_end   =  _h*stride[1]+ hh
+                    dx_pad_horiz_start = _w*stride[0]
+                    dx_pad_horiz_end   = _w*stride[0]+ ww  
+                    
+                    #dx_pad 跟各个维度相关 (不同样本，不同的过滤器、不同的w、h）  简化理解wx=out  dl/dx = dout*dw   每个过滤器对应一个dw。               
+                    dx_pad[i, :, dx_pad_vert_start:dx_pad_vert_end, dx_pad_horiz_start: dx_pad_horiz_end] += \
+                        dout[i, j, _h, _w] * w[j]
+                    
+    # 从dx_pad 中获取 dx的内容。pad: [(0, 0), (0, 0),(1, 1), (1, 1)] 去掉 h（竖直方向）、w（水平方向）的第一行及最后一行pad。               
+    dx = dx_pad[:, :, pad[2][0]:-pad[2][1], pad[3][0]:-pad[3][1]] 
+    
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -628,7 +675,26 @@ def max_pool_forward_naive(x, pool_param):
     ###########################################################################
     # TODO: Implement the max-pooling forward pass                            #
     ###########################################################################
-    pass
+    #pass
+    pool_height=pool_param['pool_height']
+    pool_width=pool_param['pool_width']
+    stride=pool_param['stride']
+    n, c, h, w = x.shape
+    out_h = 1 + (h - pool_height) // stride
+    out_w =1 + (w - pool_width) // stride
+    out = np.zeros(shape=(n, c, out_h, out_w))
+    for i in range(n):  # 每个样本点  
+         for j in range(c):# 每个过滤器，分别计算max
+            for _w in range(out_w):  # 水平方向
+                for _h in range(out_h):  # 竖直方向
+                    vert_start =  _h*stride
+                    vert_end   =  _h*stride + pool_height 
+                    horiz_start = _w*stride
+                    horiz_end   = _w*stride + pool_width     
+                    out[i, j, _h, _w] = np.max(
+                        x[i,j, vert_start: vert_end, horiz_start:horiz_end] )                       
+
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -651,7 +717,31 @@ def max_pool_backward_naive(dout, cache):
     ###########################################################################
     # TODO: Implement the max-pooling backward pass                           #
     ###########################################################################
-    pass
+    #pass
+    x, pool_param = cache
+    pool_height=pool_param['pool_height']
+    pool_width=pool_param['pool_width']
+    stride=pool_param['stride']
+    n, c, h, w = x.shape
+    out_h = 1 + (h - pool_height) // stride
+    out_w =1 + (w - pool_width) // stride
+
+    dx  = np.zeros_like(x)    
+    
+    for i in range(n):  # 每个样本点
+        for j in range(c):  # 每个filter
+            for _w in range(out_w):  # 水平方向
+                for _h in range(out_h):  # 竖直方向
+                    dx_vert_start =  _h*stride
+                    dx_vert_end   =  _h*stride+ pool_height
+                    dx_horiz_start = _w*stride
+                    dx_horiz_end   = _w*stride+ pool_width  
+                    
+                    indices = np.unravel_index(np.argmax(x[i, j,dx_vert_start:dx_vert_end,
+                                                         dx_horiz_start: dx_horiz_end]), dims=(pool_height, pool_width))
+
+                    dx[i, j, _h*stride+indices[0], _w*stride+indices[1]] += dout[i, j, _h, _w]
+ 
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -690,6 +780,12 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
     # Your implementation should be very short; ours is less than five lines. #
     ###########################################################################
     pass
+    N, C, H, W = x.shape
+    x_new = np.transpose(x, axes=(0, 2, 3, 1)).reshape((-1, C)) # N,H,W,C--->D,C
+    out, cache = batchnorm_forward(x_new, gamma, beta, bn_param) #(D,C)
+    out = out.reshape((N, H, W, C)).transpose((0, 3, 1, 2)) #(D,C)---> N,H,W,C--->N,C,H,W
+
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
