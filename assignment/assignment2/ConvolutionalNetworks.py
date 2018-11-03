@@ -406,3 +406,68 @@ print('  Shape: ', out.shape)
 print('  Means: ', out.mean(axis=(0, 2, 3)))
 print('  Stds: ', out.std(axis=(0, 2, 3)))
 
+np.random.seed(231)
+# Check the test-time forward pass by running the training-time
+# forward pass many times to warm up the running averages, and then
+# checking the means and variances of activations after a test-time
+# forward pass.
+N, C, H, W = 10, 4, 11, 12
+
+bn_param = {'mode': 'train'}
+gamma = np.ones(C)
+beta = np.zeros(C)
+for t in range(50):
+  x = 2.3 * np.random.randn(N, C, H, W) + 13
+  spatial_batchnorm_forward(x, gamma, beta, bn_param)
+bn_param['mode'] = 'test'
+x = 2.3 * np.random.randn(N, C, H, W) + 13
+a_norm, _ = spatial_batchnorm_forward(x, gamma, beta, bn_param)
+
+# Means should be close to zero and stds close to one, but will be
+# noisier than training-time forward passes.
+print('After spatial batch normalization (test-time):')
+print('  means: ', a_norm.mean(axis=(0, 2, 3)))
+print('  stds: ', a_norm.std(axis=(0, 2, 3)))
+
+
+#Spatial batch normalization: backward
+np.random.seed(231)
+N, C, H, W = 2, 3, 4, 5
+x = 5 * np.random.randn(N, C, H, W) + 12
+gamma = np.random.randn(C)
+beta = np.random.randn(C)
+dout = np.random.randn(N, C, H, W)
+
+bn_param = {'mode': 'train'}
+fx = lambda x: spatial_batchnorm_forward(x, gamma, beta, bn_param)[0]
+fg = lambda a: spatial_batchnorm_forward(x, gamma, beta, bn_param)[0]
+fb = lambda b: spatial_batchnorm_forward(x, gamma, beta, bn_param)[0]
+
+dx_num = eval_numerical_gradient_array(fx, x, dout)
+da_num = eval_numerical_gradient_array(fg, gamma, dout)
+db_num = eval_numerical_gradient_array(fb, beta, dout)
+
+#You should expect errors of magnitudes between 1e-12~1e-06
+_, cache = spatial_batchnorm_forward(x, gamma, beta, bn_param)
+dx, dgamma, dbeta = spatial_batchnorm_backward(dout, cache)
+print('dx error: ', rel_error(dx_num, dx))
+print('dgamma error: ', rel_error(da_num, dgamma))
+print('dbeta error: ', rel_error(db_num, dbeta))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
