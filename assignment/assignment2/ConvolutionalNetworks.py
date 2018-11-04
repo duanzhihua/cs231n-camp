@@ -501,7 +501,6 @@ db_num = eval_numerical_gradient_array(fb, beta, dout)
 
 _, cache = spatial_groupnorm_forward(x, gamma, beta, G, gn_param)
 dx, dgamma, dbeta = spatial_groupnorm_backward(dout, cache)
-
 #You should expect errors of magnitudes between 1e-12~1e-07
 
 print('dx error: ', rel_error(dx_num, dx))
