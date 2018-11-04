@@ -880,7 +880,7 @@ def spatial_groupnorm_forward(x, gamma, beta, G, gn_param):
     x_hat = x_hat.reshape((N, C, H, W)) #(N * G, C // G * H * W)---->(N, C, H, W)
    
 
-    # gamma: (1,C,1,1)  beta: (1,C,1,1)
+    
     out = gamma * x_hat + beta  
     cache =( x_hat,gamma,mean_x,inv_var_x, G)
 
