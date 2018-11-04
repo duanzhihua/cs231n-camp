@@ -504,6 +504,7 @@ dx, dgamma, dbeta = spatial_groupnorm_backward(dout, cache)
 #You should expect errors of magnitudes between 1e-12~1e-07
 print('dx error: ', rel_error(dx_num, dx))
 print('dgamma error: ', rel_error(da_num, dgamma))
+
 print('dbeta error: ', rel_error(db_num, dbeta))
 
 
